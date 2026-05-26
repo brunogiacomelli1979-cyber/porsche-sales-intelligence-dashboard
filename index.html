@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Porsche Sales Intelligence Dashboard</title>
+  <style>
+    :root {
+      --bg: #050505;
+      --surface: rgba(17,17,17,.86);
+      --surface-2: rgba(24,24,24,.92);
+      --surface-3: rgba(255,255,255,.045);
+      --line: rgba(255,255,255,.105);
+      --text: #f4f1ea;
+      --muted: #a7a29a;
+      --muted-2: #756f66;
+      --red: #d5001c;
+      --red-soft: rgba(213,0,28,.18);
+      --gold: #c8a96a;
+      --gold-soft: rgba(200,169,106,.14);
+      --green: #77c59d;
+      --amber: #f0b85a;
+      --danger: #d86d6d;
+      --radius: 24px;
+      --shadow: 0 28px 70px rgba(0,0,0,.48);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 12% -8%, rgba(213,0,28,.24), transparent 28rem),
+        radial-gradient(circle at 90% 4%, rgba(200,169,106,.18), transparent 32rem),
+        linear-gradient(180deg, #020202 0%, #0b0b0b 48%, #060606 100%);
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      letter-spacing: .01em;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(135deg, transparent 0 49.85%, rgba(255,255,255,.045) 50%, transparent 50.15% 100%),
+        repeating-linear-gradient(90deg, rgba(255,255,255,.022) 0 1px, transparent 1px 128px);
+      opacity: .45;
+      pointer-events: none;
+    }
+    .page {
+      position: relative;
+      z-index: 1;
+      width: min(1480px, calc(100% - 44px));
+      margin: 0 auto;
+      padding: 34px 0 46px;
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap: 22px;
+      margin-bottom: 22px;
+    }
+    .brand, .panel, .filterbar, .kpi, .ai-card, .methodology {
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(20,20,20,.94), rgba(12,12,12,.92));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+    .brand {
+      min-height: 252px;
+      border-radius: 34px;
+      padding: 38px;
+      overflow: hidden;
+      position: relative;
+    }
+    .brand::before {
+      content: "";
+      position: absolute;
+      right: -85px;
+      top: -75px;
+      width: 360px;
+      height: 360px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(213,0,28,.22), transparent 62%);
+    }
+    .brand::after {
+      content: "Porsche";
+      position: absolute;
+      right: 28px;
+      bottom: 18px;
+      font-family: Georgia, serif;
+      font-size: clamp(42px, 6vw, 90px);
+      color: rgba(255,255,255,.035);
+      letter-spacing: .08em;
+      pointer-events: none;
+    }
+    .eyebrow {
+      position: relative;
+      z-index: 1;
+      margin-bottom: 18px;
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .24em;
+      text-transform: uppercase;
+    }
+    h1 {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      max-width: 850px;
+      font-size: clamp(36px, 4.6vw, 70px);
+      line-height: .94;
+      letter-spacing: -.055em;
+    }
+    .subtitle {
+      position: relative;
+      z-index: 1;
+      max-width: 760px;
+      margin: 24px 0 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.65;
+    }
+    .hero-side {
+      display: grid;
+      gap: 16px;
+    }
+    .data-quality {
+      border-radius: 30px;
+      padding: 25px;
+      min-height: 136px;
+    }
+    .dq-title {
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .dq-number {
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -.04em;
+      margin-bottom: 6px;
+    }
+    .dq-note {
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 13px;
+    }
+    .mini-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .mini {
+      border-radius: 20px;
+      padding: 16px 14px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.04);
+    }
+    .mini strong { display:block; font-size: 22px; margin-bottom: 3px; }
+    .mini span { display:block; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+
+    .filterbar {
+      border-radius: 24px;
+      padding: 18px;
+      display: grid;
+      grid-template-columns: 1.2fr .8fr 1fr 1fr .9fr .9fr auto;
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 18px;
+    }
+    label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+      font-weight: 750;
+    }
+    select, input, button {
+      width: 100%;
+      height: 43px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.13);
+      background: rgba(0,0,0,.38);
+      color: var(--text);
+      padding: 0 12px;
+      outline: none;
+      font-size: 13px;
+    }
+    option { background: #111; color: var(--text); }
+    button {
+      min-width: 112px;
+      cursor: pointer;
+      color: #fff;
+      border-color: rgba(213,0,28,.55);
+      background: linear-gradient(135deg, rgba(213,0,28,.92), rgba(130,0,15,.92));
+      font-weight: 800;
+      letter-spacing: .04em;
+      transition: transform .18s ease, filter .18s ease;
+    }
+    button:hover { transform: translateY(-1px); filter: brightness(1.08); }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .kpi { border-radius: 22px; padding: 20px 18px; min-height: 132px; }
+    .kpi-title {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+      min-height: 28px;
+    }
+    .kpi-value {
+      margin-top: 10px;
+      font-size: clamp(24px, 2.3vw, 36px);
+      font-weight: 850;
+      letter-spacing: -.055em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .kpi-note { margin-top: 7px; color: var(--muted); font-size: 12px; line-height: 1.35; }
+
+    .ai-card {
+      border-radius: 26px;
+      padding: 24px;
+      margin-bottom: 18px;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 22px;
+      align-items: start;
+      background:
+        linear-gradient(130deg, rgba(213,0,28,.10), transparent 30%),
+        linear-gradient(180deg, rgba(22,22,22,.95), rgba(10,10,10,.93));
+    }
+    .ai-label {
+      color: var(--gold);
+      font-weight: 850;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      font-size: 12px;
+    }
+    .ai-label span { display:block; margin-top: 10px; color: var(--muted); font-weight: 500; letter-spacing: normal; text-transform: none; line-height: 1.45; }
+    .insights { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .insight {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(255,255,255,.04);
+      min-height: 112px;
+    }
+    .insight strong { display:block; color: var(--text); margin-bottom: 9px; font-size: 14px; }
+    .insight p { margin:0; color: var(--muted); font-size: 13px; line-height: 1.52; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 16px;
+    }
+    .panel { border-radius: 26px; padding: 24px; }
+    .span-6 { grid-column: span 6; }
+    .span-5 { grid-column: span 5; }
+    .span-7 { grid-column: span 7; }
+    .span-12 { grid-column: span 12; }
+    .section-title {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    h2 { margin: 0; font-size: 18px; letter-spacing: -.025em; }
+    .section-title span { color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .chart { display: grid; gap: 12px; min-height: 276px; align-content: start; }
+    .chart.compact { min-height: 244px; }
+    .bar-row { display: grid; grid-template-columns: minmax(130px, 220px) 1fr 70px; gap: 14px; align-items: center; }
+    .bar-label { color: var(--text); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .track { height: 12px; border-radius: 999px; overflow: hidden; background: rgba(255,255,255,.075); border: 1px solid rgba(255,255,255,.05); }
+    .fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--red), var(--gold)); box-shadow: 0 0 18px rgba(213,0,28,.22); }
+    .bar-value { text-align: right; color: var(--gold); font-weight: 850; font-size: 13px; }
+    .empty { color: var(--muted); text-align: center; padding: 50px 20px; border: 1px dashed var(--line); border-radius: 20px; }
+
+    .status-grid { display:grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .status-card {
+      border-radius: 20px;
+      padding: 19px;
+      background: rgba(255,255,255,.045);
+      border: 1px solid var(--line);
+      min-height: 112px;
+    }
+    .status-card strong { display:block; font-size: 32px; letter-spacing: -.04em; margin-bottom: 8px; }
+    .status-card span { color: var(--muted); font-size: 13px; line-height: 1.4; }
+    .status-bar { margin-top: 14px; height: 6px; border-radius: 999px; overflow:hidden; background: rgba(255,255,255,.075); }
+    .status-bar div { height:100%; background: linear-gradient(90deg, var(--gold), var(--red)); }
+
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,.075); text-align: left; font-size: 13px; }
+    th { color: var(--muted); text-transform: uppercase; letter-spacing: .1em; font-size: 10px; font-weight: 850; }
+    td { color: var(--text); }
+    .pill {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width: 38px;
+      border-radius: 999px;
+      padding: 5px 10px;
+      background: rgba(200,169,106,.13);
+      color: var(--gold);
+      border: 1px solid rgba(200,169,106,.22);
+      font-weight: 750;
+      font-size: 12px;
+    }
+
+    .methodology {
+      margin-top: 16px;
+      border-radius: 24px;
+      padding: 18px 20px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.62;
+    }
+    details summary { cursor: pointer; color: var(--gold); font-weight: 850; letter-spacing: .08em; text-transform: uppercase; font-size: 12px; }
+    .method-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 16px; }
+    .method-item { border: 1px solid var(--line); background: rgba(255,255,255,.035); border-radius: 16px; padding: 14px; }
+    .method-item strong { display:block; color: var(--text); margin-bottom: 6px; }
+    .foot { margin-top: 16px; color: var(--muted-2); font-size: 12px; line-height: 1.55; text-align: center; }
+
+    @media (max-width: 1180px) {
+      .hero, .ai-card { grid-template-columns: 1fr; }
+      .filterbar { grid-template-columns: repeat(3, 1fr); }
+      .kpis { grid-template-columns: repeat(3, 1fr); }
+      .span-6,.span-5,.span-7 { grid-column: span 12; }
+      .method-grid, .insights { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 720px) {
+      .page { width: min(100% - 24px, 1480px); padding-top: 18px; }
+      .brand { padding: 24px; min-height: auto; }
+      .filterbar,.kpis,.mini-strip,.insights,.method-grid { grid-template-columns: 1fr; }
+      .bar-row { grid-template-columns: 1fr; gap: 6px; }
+      .bar-value { text-align:left; }
+      .status-grid { grid-template-columns: 1fr; }
+      .section-title { display:block; }
+      .section-title span { display:block; margin-top: 6px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="brand">
+        <div class="eyebrow">AI REPORTS - EXCEL - CHAT GPT</div>
+        <h1>Porsche Sales Intelligence Dashboard</h1>
+        <p class="subtitle">Visão executiva de vendas realizadas até 26/05/2026, com dados tratados da planilha, rankings curtos, KPIs objetivos e insights gerados automaticamente para apoiar decisões sem sobrecarregar a leitura.</p>
+      </div>
+      <div class="hero-side">
+        <div class="panel data-quality">
+          <div class="dq-title">Período analisado</div>
+          <div class="dq-number" id="dqMain">—</div>
+          <div class="dq-note" id="dqNote">—</div>
+        </div>
+        <div class="mini-strip">
+          <div class="mini"><strong id="miniRows">—</strong><span>registros</span></div>
+          <div class="mini"><strong id="miniModels">—</strong><span>modelos</span></div>
+          <div class="mini"><strong id="miniStates">—</strong><span>estados</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="filterbar" aria-label="Filtros da dashboard">
+      <div><label for="modelFilter">Modelo Porsche</label><select id="modelFilter"></select></div>
+      <div><label for="yearFilter">Model year</label><select id="yearFilter"></select></div>
+      <div><label for="cityFilter">City</label><select id="cityFilter"></select></div>
+      <div><label for="payFilter">Pay method</label><select id="payFilter"></select></div>
+      <div><label for="startDate">Data inicial</label><input id="startDate" type="date" /></div>
+      <div><label for="endDate">Data final</label><input id="endDate" type="date" /></div>
+      <button id="resetBtn">Limpar</button>
+    </section>
+
+    <section class="kpis">
+      <div class="kpi"><div class="kpi-title">Vendas totais</div><div class="kpi-value" id="kpiSales">—</div><div class="kpi-note" id="kpiSalesNote"></div></div>
+      <div class="kpi"><div class="kpi-title">Receita estimada</div><div class="kpi-value" id="kpiRevenue">—</div><div class="kpi-note">soma do preço sanitizado</div></div>
+      <div class="kpi"><div class="kpi-title">Ticket médio</div><div class="kpi-value" id="kpiAvg">—</div><div class="kpi-note">por venda filtrada</div></div>
+      <div class="kpi"><div class="kpi-title">Modelo líder</div><div class="kpi-value" id="kpiModel">—</div><div class="kpi-note" id="kpiModelNote"></div></div>
+      <div class="kpi"><div class="kpi-title">Estado líder</div><div class="kpi-value" id="kpiState">—</div><div class="kpi-note" id="kpiStateNote"></div></div>
+      <div class="kpi"><div class="kpi-title">% Delivered</div><div class="kpi-value" id="kpiDelivered">—</div><div class="kpi-note">entregas concluídas</div></div>
+    </section>
+
+    <section class="ai-card">
+      <div class="ai-label">AI Executive Insights<span>Três leituras atualizadas automaticamente com base nos filtros aplicados.</span></div>
+      <div class="insights" id="insights"></div>
+    </section>
+
+    <section class="grid">
+      <div class="panel span-6">
+        <div class="section-title"><h2>Top modelos vendidos</h2><span>Top 8 + Outros</span></div>
+        <div id="modelsChart" class="chart"></div>
+      </div>
+      <div class="panel span-6">
+        <div class="section-title"><h2>Top estados por vendas</h2><span>Top 10 + Outros</span></div>
+        <div id="statesChart" class="chart"></div>
+      </div>
+      <div class="panel span-7">
+        <div class="section-title"><h2>Ano + modelo que mais saiu</h2><span>combinação mais frequente no período</span></div>
+        <div id="yearModelChart" class="chart compact"></div>
+      </div>
+      <div class="panel span-5">
+        <div class="section-title"><h2>Status comercial/logístico</h2><span>agrupamento executivo</span></div>
+        <div class="status-grid" id="statusGrid"></div>
+      </div>
+      <div class="panel span-12">
+        <div class="section-title"><h2>Principais modelos vendidos por cidade</h2><span>top cidades com modelo líder</span></div>
+        <div style="overflow:auto;">
+          <table>
+            <thead><tr><th>Cidade</th><th>Estado</th><th>Modelo líder</th><th>Vendas</th><th>Receita estimada</th><th>Ticket médio</th></tr></thead>
+            <tbody id="cityTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="methodology">
+      <details>
+        <summary>Data & AI Methodology</summary>
+        <div class="method-grid">
+          <div class="method-item"><strong>Excel como fonte</strong>Dados extraídos da planilha anexada, consolidados em campos sanitizados e limitados ao período até 26/05/2026.</div>
+          <div class="method-item"><strong>Tratamento de dados</strong>Modelo, ano, preço, cidade, estado, método de pagamento, status e datas foram padronizados; registros com data futura foram removidos do recorte final.</div>
+          <div class="method-item"><strong>Curadoria analítica</strong>Rankings usam Top N + Outros para evitar poluição visual e manter foco executivo.</div>
+          <div class="method-item"><strong>Agentes de IA</strong>IA utilizada para estruturar KPIs, gerar insights, revisar consistência dos dados e produzir o HTML final.</div>
+        </div>
+      </details>
+    </section>
+    <div class="foot">Base sanitizada a partir da planilha Excel anexada. As datas foram padronizadas para permitir análise temporal completa e filtros consistentes.</div>
+  </main>
+<script>
+const DATA = [{"sale_id": 6, "date": "2024-02-29", "validDate": true, "model": "718 Cayman", "modelYear": "2022", "price": 79500.0, "mileage": 9800.0, "payMethod": "Credit Card", "city": "Boston", "state": "MA", "status": "Delivered"}, {"sale_id": 7, "date": "2024-03-14", "validDate": true, "model": "911 Turbo S", "modelYear": "2024", "price": 235000.0, "mileage": 1200.0, "payMethod": "Wire Transfer", "city": "Seattle", "state": "WA", "status": "Delivered"}, {"sale_id": 8, "date": "2024-04-18", "validDate": true, "model": "Cayenne Coupe", "modelYear": "2023", "price": 112750.0, "mileage": 6400.0, "payMethod": "Financing", "city": "Austin", "state": "TX", "status": "In Transit"}, {"sale_id": 9, "date": "2024-04-30", "validDate": true, "model": "Macan S", "modelYear": "2021", "price": 68900.0, "mileage": 28.0, "payMethod": "Cash", "city": "Denver", "state": "CO", "status": "Pending"}, {"sale_id": 10, "date": "2024-05-22", "validDate": true, "model": "Taycan 4S", "modelYear": "2024", "price": 121000.0, "mileage": 0.0, "payMethod": "Bank Transfer", "city": "Los Angeles", "state": "CA", "status": "Delivered"}, {"sale_id": 11, "date": "2024-08-06", "validDate": true, "model": "Panamera 4", "modelYear": "2023", "price": 104500.0, "mileage": 14500.0, "payMethod": "Credit Card", "city": "Miami", "state": "FL", "status": "Cancelled"}, {"sale_id": 12, "date": "2024-07-11", "validDate": true, "model": "911 Carrera S", "modelYear": "2020", "price": 96300.0, "mileage": 41000.0, "payMethod": "Lease", "city": "New York", "state": "NY", "status": "Delivered"}, {"sale_id": 13, "date": "2024-07-15", "validDate": true, "model": "Cayenne E-Hybrid", "modelYear": "2022", "price": 89750.0, "mileage": 11744.0, "payMethod": "Wire Transfer", "city": "San Diego", "state": "CA", "status": "Pending Approval"}, {"sale_id": 14, "date": "2024-08-19", "validDate": true, "model": "718 Boxster", "modelYear": "2021", "price": 73500.0, "mileage": 22300.0, "payMethod": "Debit Card", "city": "Chicago", "state": "IL", "status": "Shipped"}, {"sale_id": 15, "date": "2024-09-02", "validDate": true, "model": "Macan GTS", "modelYear": "2024", "price": 95000.0, "mileage": 3500.0, "payMethod": "Financing", "city": "Phoenix", "state": "AZ", "status": "In Transit"}, {"sale_id": 16, "date": "2024-09-17", "validDate": true, "model": "Taycan Turbo", "modelYear": "2023", "price": 153200.5, "mileage": 11.0, "payMethod": "ACH Payment", "city": "Dallas", "state": "TX", "status": "Delivered"}, {"sale_id": 17, "date": "2024-10-31", "validDate": true, "model": "911 GT3", "modelYear": "2024", "price": 241000.0, "mileage": 750.0, "payMethod": "Wire Transfer", "city": "Las Vegas", "state": "NV", "status": "Pending"}, {"sale_id": 18, "date": "2024-05-11", "validDate": true, "model": "Panamera Turbo S", "modelYear": "2022", "price": 132000.0, "mileage": 19250.0, "payMethod": "Cash", "city": "San Jose", "state": "CA", "status": "Delivered"}, {"sale_id": 19, "date": "2024-12-12", "validDate": true, "model": "Cayenne Turbo GT", "modelYear": "2024", "price": 188000.0, "mileage": 2100.0, "payMethod": "Crypto Payment", "city": "Houston", "state": "TX", "status": "Awaiting Delivery"}, {"sale_id": 20, "date": "2024-12-25", "validDate": true, "model": "911 Carrera Cabriolet", "modelYear": "2023", "price": 127800.0, "mileage": 12000.0, "payMethod": "Credit Card", "city": "Atlanta", "state": "GA", "status": "Delivered"}, {"sale_id": 21, "date": "2025-01-06", "validDate": true, "model": "Macan", "modelYear": "2021", "price": 58900.0, "mileage": 33700.0, "payMethod": "Bank Transfer", "city": "Orlando", "state": "FL", "status": "Pending"}, {"sale_id": 22, "date": "2025-01-31", "validDate": true, "model": "718 Spyder RS", "modelYear": "2024", "price": 164000.0, "mileage": 900.0, "payMethod": "Financing", "city": "Portland", "state": "OR", "status": "In Transit"}, {"sale_id": 23, "date": "2025-02-14", "validDate": true, "model": "Taycan Cross Turismo", "modelYear": "2023", "price": 118500.0, "mileage": 7800.0, "payMethod": "Wire Transfer", "city": "Charlotte", "state": "NC", "status": "Delivered"}, {"sale_id": 24, "date": "2025-02-28", "validDate": true, "model": "Cayenne S", "modelYear": "2022", "price": 91300.0, "mileage": 16000.0, "payMethod": "Credit Card", "city": "Nashville", "state": "TN", "status": "Pending"}, {"sale_id": 25, "date": "2025-03-21", "validDate": true, "model": "911 Targa 4S", "modelYear": "2024", "price": 158750.0, "mileage": 2500.0, "payMethod": "Lease", "city": "Minneapolis", "state": "MN", "status": "Delivered"}, {"sale_id": 26, "date": "2025-03-28", "validDate": true, "model": "Panamera", "modelYear": "2020", "price": 72000.0, "mileage": 49000.0, "payMethod": "Bank Transfer", "city": "Philadelphia", "state": "PA", "status": "Cancelled"}, {"sale_id": 27, "date": "2025-04-09", "validDate": true, "model": "Macan Electric", "modelYear": "2025", "price": 86500.0, "mileage": 0.0, "payMethod": "Wire Transfer", "city": "San Antonio", "state": "TX", "status": "Delivered"}, {"sale_id": 28, "date": "2025-04-30", "validDate": true, "model": "911 Dakar", "modelYear": "2024", "price": 270000.0, "mileage": 1050.0, "payMethod": "Cash", "city": "Salt Lake City", "state": "UT", "status": "Awaiting Pickup"}, {"sale_id": 29, "date": "2025-05-12", "validDate": true, "model": "Taycan GTS", "modelYear": "2023", "price": 139000.0, "mileage": 6250.0, "payMethod": "Financing", "city": "Raleigh", "state": "NC", "status": "In Transit"}, {"sale_id": 30, "date": "2025-06-18", "validDate": true, "model": "Cayenne", "modelYear": "2021", "price": 76800.0, "mileage": 38400.0, "payMethod": "Credit Card", "city": "Detroit", "state": "MI", "status": "Delivered"}, {"sale_id": 31, "date": "2025-06-30", "validDate": true, "model": "718 Cayman GT4 RS", "modelYear": "2024", "price": 173600.0, "mileage": 400.0, "payMethod": "Wire Transfer", "city": "Columbus", "state": "OH", "status": "Pending"}, {"sale_id": 32, "date": "2025-07-07", "validDate": true, "model": "911 Carrera GTS", "modelYear": "2022", "price": 119900.0, "mileage": 13600.0, "payMethod": "Cash", "city": "Indianapolis", "state": "IN", "status": "Delivered"}, {"sale_id": 33, "date": "2025-07-22", "validDate": true, "model": "Panamera 4 E-Hybrid", "modelYear": "2023", "price": 109250.0, "mileage": 8900.0, "payMethod": "Lease", "city": "Fort Worth", "state": "TX", "status": "In Transit"}, {"sale_id": 34, "date": "2025-08-14", "validDate": true, "model": "Macan T", "modelYear": "2022", "price": 82000.0, "mileage": 21750.0, "payMethod": "Wire Transfer", "city": "Jacksonville", "state": "FL", "status": "Delivered"}, {"sale_id": 35, "date": "2025-09-01", "validDate": true, "model": "Taycan Turbo S", "modelYear": "2025", "price": 214000.0, "mileage": 0.0, "payMethod": "Crypto Payment", "city": "San Diego", "state": "CA", "status": "Pending Review"}, {"sale_id": 36, "date": "2025-09-30", "validDate": true, "model": "911 Carrera", "modelYear": "2024", "price": 124500.0, "mileage": 4800.0, "payMethod": "Credit Card", "city": "Tampa", "state": "FL", "status": "Delivered"}, {"sale_id": 37, "date": "2025-09-18", "validDate": true, "model": "Cayenne S", "modelYear": "2023", "price": 98200.0, "mileage": 12200.0, "payMethod": "Bank Transfer", "city": "Sacramento", "state": "CA", "status": "Pending"}, {"sale_id": 38, "date": "2025-10-04", "validDate": true, "model": "Macan", "modelYear": "2022", "price": 67500.0, "mileage": 24100.0, "payMethod": "Financing", "city": "Cleveland", "state": "OH", "status": "Delivered"}, {"sale_id": 39, "date": "2025-10-12", "validDate": true, "model": "Taycan", "modelYear": "2025", "price": 116900.0, "mileage": 0.0, "payMethod": "Wire Transfer", "city": "Milwaukee", "state": "WI", "status": "In Transit"}, {"sale_id": 40, "date": "2025-10-29", "validDate": true, "model": "Panamera 4S", "modelYear": "2024", "price": 112000.0, "mileage": 10.0, "payMethod": "Cash", "city": "Kansas City", "state": "MO", "status": "Delivered"}, {"sale_id": 41, "date": "2025-02-11", "validDate": true, "model": "718 Boxster", "modelYear": "2021", "price": 74000.0, "mileage": 31000.0, "payMethod": "Debit Card", "city": "Omaha", "state": "NE", "status": "Cancelled"}, {"sale_id": 42, "date": "2025-11-16", "validDate": true, "model": "911 Turbo", "modelYear": "2024", "price": 198300.0, "mileage": 2400.0, "payMethod": "Wire Transfer", "city": "Albuquerque", "state": "NM", "status": "Awaiting Delivery"}, {"sale_id": 43, "date": "2025-11-18", "validDate": true, "model": "Cayenne Coupe", "modelYear": "2023", "price": 103750.0, "mileage": 6773.0, "payMethod": "Wire Transfer", "city": "Tucson", "state": "AZ", "status": "Pending Approval"}, {"sale_id": 44, "date": "2025-11-30", "validDate": true, "model": "Macan GTS", "modelYear": "2024", "price": 93600.0, "mileage": 5800.0, "payMethod": "Financing", "city": "Fresno", "state": "CA", "status": "Shipped"}, {"sale_id": 45, "date": "2025-12-07", "validDate": true, "model": "Taycan 4S", "modelYear": "2025", "price": 129000.0, "mileage": 0.0, "payMethod": "ACH Payment", "city": "Virginia Beach", "state": "VA", "status": "In Transit"}, {"sale_id": 46, "date": "2025-12-22", "validDate": true, "model": "Panamera Turbo", "modelYear": "2022", "price": 136000.0, "mileage": 18400.0, "payMethod": "Credit Card", "city": "Colorado Springs", "state": "CO", "status": "Delivered"}, {"sale_id": 47, "date": "2025-12-31", "validDate": true, "model": "911 GT3 RS", "modelYear": "2024", "price": 286500.0, "mileage": 700.0, "payMethod": "Wire Transfer", "city": "Arlington", "state": "TX", "status": "Pending"}, {"sale_id": 48, "date": "2026-01-08", "validDate": true, "model": "Cayenne E-Hybrid", "modelYear": "2023", "price": 92800.0, "mileage": 15000.0, "payMethod": "Lease", "city": "Bakersfield", "state": "CA", "status": "Delivered"}, {"sale_id": 49, "date": "2026-01-15", "validDate": true, "model": "Macan T", "modelYear": "2022", "price": 72400.0, "mileage": 19750.0, "payMethod": "Cash", "city": "Mesa", "state": "AZ", "status": "Awaiting Pickup"}, {"sale_id": 50, "date": "2026-01-28", "validDate": true, "model": "Taycan Turbo", "modelYear": "2025", "price": 158500.0, "mileage": 3200.0, "payMethod": "Crypto Payment", "city": "Atlanta", "state": "GA", "status": "Delivered"}, {"sale_id": 51, "date": "2026-02-03", "validDate": true, "model": "718 Cayman", "modelYear": "2021", "price": 69900.0, "mileage": 27600.0, "payMethod": "Bank Transfer", "city": "Long Beach", "state": "CA", "status": "Pending"}, {"sale_id": 52, "date": "2026-02-28", "validDate": true, "model": "911 Targa 4", "modelYear": "2024", "price": 141250.0, "mileage": 2100.0, "payMethod": "Financing", "city": "Oakland", "state": "CA", "status": "In Transit"}, {"sale_id": 53, "date": "2026-02-19", "validDate": true, "model": "Panamera", "modelYear": "2020", "price": 71500.0, "mileage": 52000.0, "payMethod": "Wire Transfer", "city": "Tulsa", "state": "OK", "status": "Delivered"}, {"sale_id": 54, "date": "2026-02-25", "validDate": true, "model": "Cayenne Turbo", "modelYear": "2023", "price": 146800.0, "mileage": 11300.0, "payMethod": "Credit Card", "city": "Wichita", "state": "KS", "status": "Pending"}, {"sale_id": 55, "date": "2026-03-01", "validDate": true, "model": "Macan Electric", "modelYear": "2025", "price": 89700.0, "mileage": 0.0, "payMethod": "Lease", "city": "New Orleans", "state": "LA", "status": "Delivered"}, {"sale_id": 56, "date": "2026-03-14", "validDate": true, "model": "911 Carrera S", "modelYear": "2022", "price": 104600.0, "mileage": 15900.0, "payMethod": "Bank Transfer", "city": "Honolulu", "state": "HI", "status": "Cancelled"}, {"sale_id": 57, "date": "2026-03-31", "validDate": true, "model": "Taycan GTS", "modelYear": "2024", "price": 142000.0, "mileage": 6600.0, "payMethod": "Wire Transfer", "city": "Anaheim", "state": "CA", "status": "Delivered"}, {"sale_id": 58, "date": "2026-04-08", "validDate": true, "model": "Cayenne", "modelYear": "2021", "price": 78400.0, "mileage": 40250.0, "payMethod": "Cash", "city": "Henderson", "state": "NV", "status": "Awaiting Review"}, {"sale_id": 59, "date": "2026-04-30", "validDate": true, "model": "718 Spyder RS", "modelYear": "2025", "price": 169000.0, "mileage": 850.0, "payMethod": "Financing", "city": "Lexington", "state": "KY", "status": "In Transit"}, {"sale_id": 60, "date": "2026-04-21", "validDate": true, "model": "911 Dakar", "modelYear": "2024", "price": 268900.0, "mileage": 1400.0, "payMethod": "Credit Card", "city": "Riverside", "state": "CA", "status": "Delivered"}, {"sale_id": 61, "date": "2026-04-29", "validDate": true, "model": "Panamera 4", "modelYear": "2023", "price": 101300.0, "mileage": 12700.0, "payMethod": "Wire Transfer", "city": "Corpus Christi", "state": "TX", "status": "Pending"}, {"sale_id": 62, "date": "2026-05-05", "validDate": true, "model": "Macan S", "modelYear": "2021", "price": 66750.0, "mileage": 29800.0, "payMethod": "Cash", "city": "St. Louis", "state": "MO", "status": "Delivered"}, {"sale_id": 63, "date": "2026-05-14", "validDate": true, "model": "Taycan Cross Turismo", "modelYear": "2024", "price": 127900.0, "mileage": 7500.0, "payMethod": "Lease", "city": "Pittsburgh", "state": "PA", "status": "In Transit"}, {"sale_id": 64, "date": "2026-05-23", "validDate": true, "model": "Cayenne Turbo GT", "modelYear": "2025", "price": 200000.0, "mileage": 1950.0, "payMethod": "Wire Transfer", "city": "Cincinnati", "state": "OH", "status": "Delivered"}, {"sale_id": 71, "date": "2026-04-08", "validDate": true, "model": "911 Carrera GTS", "modelYear": "2024", "price": 121750.0, "mileage": 5872.0, "payMethod": "Credit Card", "city": "Chandler", "state": "AZ", "status": "Delivered"}];
+const fmtUSD = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+const fmtNum = new Intl.NumberFormat('pt-BR');
+const byId = id => document.getElementById(id);
+
+const statusGroups = {
+  "Concluídas": ["Delivered"],
+  "Em andamento": ["Pending","In Transit","Shipped","Awaiting Delivery","Awaiting Pickup"],
+  "Em análise": ["Pending Approval","Pending Review","Awaiting Review"],
+  "Canceladas": ["Cancelled"]
+};
+
+function uniqueValues(key) {
+  return [...new Set(DATA.map(d => d[key]).filter(Boolean))].sort((a,b) => String(a).localeCompare(String(b)));
+}
+function fillSelect(id, values, label="Todos") {
+  const sel = byId(id);
+  sel.innerHTML = `<option value="">${label}</option>` + values.map(v => `<option value="${String(v).replaceAll('"','&quot;')}">${v}</option>`).join('');
+}
+function countBy(rows, keyFn) {
+  const m = new Map();
+  rows.forEach(r => {
+    const k = keyFn(r);
+    if (!k) return;
+    if (!m.has(k)) m.set(k, { label: k, count: 0, revenue: 0 });
+    const item = m.get(k);
+    item.count += 1;
+    item.revenue += Number(r.price || 0);
+  });
+  return [...m.values()].sort((a,b) => b.count - a.count || b.revenue - a.revenue || a.label.localeCompare(b.label));
+}
+function topWithOthers(items, topN) {
+  if (items.length <= topN) return items;
+  const top = items.slice(0, topN);
+  const rest = items.slice(topN);
+  const other = rest.reduce((acc, x) => { acc.count += x.count; acc.revenue += x.revenue || 0; return acc; }, {label: "Outros", count: 0, revenue: 0});
+  return [...top, other];
+}
+function validDateExtent(rows = DATA) {
+  const dates = rows.filter(d => d.validDate).map(d => d.date).sort();
+  return { min: dates[0], max: dates[dates.length-1], total: dates.length };
+}
+function fmtDateBR(value) {
+  if (!value) return "—";
+  const [y, m, d] = value.split("-");
+  return `${d}/${m}/${y}`;
+}
+function getFiltered() {
+  const model = byId("modelFilter").value;
+  const year = byId("yearFilter").value;
+  const city = byId("cityFilter").value;
+  const pay = byId("payFilter").value;
+  const start = byId("startDate").value;
+  const end = byId("endDate").value;
+  return DATA.filter(d => {
+    if (model && d.model !== model) return false;
+    if (year && d.modelYear !== year) return false;
+    if (city && d.city !== city) return false;
+    if (pay && d.payMethod !== pay) return false;
+    if (start || end) {
+      if (!d.validDate) return false;
+      if (start && d.date < start) return false;
+      if (end && d.date > end) return false;
+    }
+    return true;
+  });
+}
+function barChart(el, items, valueLabelFn, maxRows) {
+  if (!items.length) {
+    el.innerHTML = `<div class="empty">Nenhum registro para os filtros selecionados.</div>`;
+    return;
+  }
+  const max = Math.max(...items.map(x => x.count), 1);
+  el.innerHTML = items.slice(0, maxRows).map(x => {
+    const w = Math.max(3, (x.count / max) * 100);
+    return `<div class="bar-row" title="${x.label} • ${x.count} venda(s) • ${fmtUSD.format(x.revenue || 0)}">
+      <div class="bar-label">${x.label}</div>
+      <div class="track"><div class="fill" style="width:${w}%"></div></div>
+      <div class="bar-value">${valueLabelFn ? valueLabelFn(x) : fmtNum.format(x.count)}</div>
+    </div>`;
+  }).join('');
+}
+function renderKPIs(rows) {
+  const total = rows.length;
+  const revenue = rows.reduce((s,d) => s + Number(d.price || 0), 0);
+  const avg = total ? revenue / total : 0;
+  const models = countBy(rows, d => d.model);
+  const states = countBy(rows, d => d.state);
+  const delivered = rows.filter(d => d.status === "Delivered").length;
+  byId("kpiSales").textContent = fmtNum.format(total);
+  byId("kpiSalesNote").textContent = `registros no recorte atual`;
+  byId("kpiRevenue").textContent = fmtUSD.format(revenue);
+  byId("kpiAvg").textContent = total ? fmtUSD.format(avg) : "—";
+  byId("kpiModel").textContent = models[0]?.label || "—";
+  byId("kpiModelNote").textContent = models[0] ? `${models[0].count} venda(s) • ${fmtUSD.format(models[0].revenue)}` : "";
+  byId("kpiState").textContent = states[0]?.label || "—";
+  byId("kpiStateNote").textContent = states[0] ? `${states[0].count} venda(s) • ${fmtUSD.format(states[0].revenue)}` : "";
+  byId("kpiDelivered").textContent = total ? `${Math.round((delivered / total) * 100)}%` : "—";
+}
+function renderDataQuality(rows) {
+  const baseExtent = validDateExtent(DATA);
+  const currentExtent = validDateExtent(rows);
+  const baseStartYear = baseExtent.min ? baseExtent.min.slice(0,4) : "—";
+  const baseEndYear = baseExtent.max ? baseExtent.max.slice(0,4) : "—";
+  byId("dqMain").textContent = `${baseStartYear}–${baseEndYear}`;
+  byId("dqNote").textContent = currentExtent.total
+    ? `${fmtNum.format(currentExtent.total)} registro(s) no recorte atual • ${fmtDateBR(currentExtent.min)} a ${fmtDateBR(currentExtent.max)}`
+    : `Nenhum registro no recorte atual.`;
+  byId("miniRows").textContent = fmtNum.format(DATA.length);
+  byId("miniModels").textContent = fmtNum.format(uniqueValues("model").length);
+  byId("miniStates").textContent = fmtNum.format(uniqueValues("state").length);
+  byId("startDate").min = baseExtent.min;
+  byId("startDate").max = baseExtent.max;
+  byId("endDate").min = baseExtent.min;
+  byId("endDate").max = baseExtent.max;
+}
+function renderStatus(rows) {
+  byId("statusGrid").innerHTML = Object.entries(statusGroups).map(([group, statuses]) => {
+    const count = rows.filter(d => statuses.includes(d.status)).length;
+    const pct = rows.length ? Math.round((count / rows.length) * 100) : 0;
+    return `<div class="status-card"><strong>${count}</strong><span>${group} • ${pct}%</span><div class="status-bar"><div style="width:${pct}%"></div></div></div>`;
+  }).join('');
+}
+function renderCityTable(rows) {
+  const map = new Map();
+  rows.forEach(d => {
+    const key = `${d.city}|${d.state}`;
+    if (!map.has(key)) map.set(key, { city: d.city, state: d.state, count: 0, revenue: 0, models: new Map() });
+    const item = map.get(key);
+    item.count += 1;
+    item.revenue += Number(d.price || 0);
+    item.models.set(d.model, (item.models.get(d.model) || 0) + 1);
+  });
+  const items = [...map.values()].sort((a,b) => b.count - a.count || b.revenue - a.revenue).slice(0, 10);
+  if (!items.length) {
+    byId("cityTable").innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:34px;">Nenhum registro para os filtros selecionados.</td></tr>`;
+    return;
+  }
+  byId("cityTable").innerHTML = items.map(x => {
+    const leader = [...x.models.entries()].sort((a,b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0];
+    const avg = x.count ? x.revenue / x.count : 0;
+    return `<tr><td>${x.city}</td><td><span class="pill">${x.state}</span></td><td>${leader?.[0] || "—"}</td><td>${fmtNum.format(x.count)}</td><td>${fmtUSD.format(x.revenue)}</td><td>${fmtUSD.format(avg)}</td></tr>`;
+  }).join('');
+}
+function renderInsights(rows) {
+  const total = rows.length;
+  if (!total) {
+    byId("insights").innerHTML = ["Sem dados", "Ajuste os filtros", "Período sem registros"].map((t,i) => `<div class="insight"><strong>${t}</strong><p>Não há registros suficientes para gerar leitura executiva com os filtros selecionados.</p></div>`).join('');
+    return;
+  }
+  const models = countBy(rows, d => d.model);
+  const states = countBy(rows, d => d.state);
+  const cities = countBy(rows, d => `${d.city}/${d.state}`);
+  const yearModel = countBy(rows, d => d.modelYear && d.model ? `${d.modelYear} • ${d.model}` : "");
+  const delivered = rows.filter(d => d.status === "Delivered").length;
+  const deliveredPct = Math.round((delivered / total) * 100);
+  const revenue = rows.reduce((s,d)=>s + Number(d.price || 0), 0);
+  const insight1 = `<div class="insight"><strong>Concentração comercial</strong><p>${states[0]?.label || "—"} lidera com ${states[0]?.count || 0} venda(s), seguido por ${states[1]?.label || "—"}. A cidade mais forte no recorte é ${cities[0]?.label || "—"}.</p></div>`;
+  const insight2 = `<div class="insight"><strong>Modelo e combinação vencedora</strong><p>${models[0]?.label || "—"} aparece como modelo líder. A combinação ano + modelo mais frequente é ${yearModel[0]?.label || "—"}.</p></div>`;
+  const avgTicket = total ? revenue / total : 0;
+  const insight3 = `<div class="insight"><strong>Eficiência comercial</strong><p>${deliveredPct}% das vendas filtradas estão como Delivered, com receita estimada de ${fmtUSD.format(revenue)} e ticket médio de ${fmtUSD.format(avgTicket)}.</p></div>`;
+  byId("insights").innerHTML = insight1 + insight2 + insight3;
+}
+function render() {
+  const rows = getFiltered();
+  renderKPIs(rows);
+  renderDataQuality(rows);
+  renderInsights(rows);
+  barChart(byId("modelsChart"), topWithOthers(countBy(rows, d => d.model), 8), x => fmtNum.format(x.count), 9);
+  barChart(byId("statesChart"), topWithOthers(countBy(rows, d => d.state), 10), x => fmtNum.format(x.count), 11);
+  barChart(byId("yearModelChart"), countBy(rows, d => d.modelYear && d.model ? `${d.modelYear} • ${d.model}` : "").slice(0, 8), x => fmtNum.format(x.count), 8);
+  renderStatus(rows);
+  renderCityTable(rows);
+}
+function init() {
+  fillSelect("modelFilter", uniqueValues("model"), "Todos os modelos");
+  fillSelect("yearFilter", uniqueValues("modelYear"), "Todos os anos");
+  fillSelect("cityFilter", uniqueValues("city"), "Todas as cidades");
+  fillSelect("payFilter", uniqueValues("payMethod"), "Todos os métodos");
+  ["modelFilter","yearFilter","cityFilter","payFilter","startDate","endDate"].forEach(id => byId(id).addEventListener("change", render));
+  byId("resetBtn").addEventListener("click", () => {
+    ["modelFilter","yearFilter","cityFilter","payFilter","startDate","endDate"].forEach(id => byId(id).value = "");
+    render();
+  });
+  render();
+}
+init();
+</script>
+</body>
+</html>
