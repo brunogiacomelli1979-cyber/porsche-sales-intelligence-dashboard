@@ -248,8 +248,11 @@ index.html
 
 em qualquer navegador moderno.
 
-Caso esteja publicada no GitHub Pages, acesse o link gerado nas configurações do repositório.
+## Repositório
 
+Este projeto está disponível em:
+
+[GitHub - Porsche Sales Intelligence Dashboard](https://github.com/brunogiacomelli1979-cyber/porsche-sales-intelligence-dashboard)
 ---
 
 ## Aprendizados do projeto
