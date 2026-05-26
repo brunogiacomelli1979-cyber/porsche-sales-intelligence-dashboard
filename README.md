@@ -252,7 +252,8 @@ em qualquer navegador moderno.
 
 Este projeto está disponível em:
 
-[GitHub - Porsche Sales Intelligence Dashboard](https://github.com/brunogiacomelli1979-cyber/porsche-sales-intelligence-dashboard)
+[GitHub - Porsche Sales Intelligence Dashboard](https://brunogiacomelli1979-cyber.github.io/porsche-sales-intelligence-dashboard/
+)
 ---
 
 ## Aprendizados do projeto
